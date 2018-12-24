@@ -355,6 +355,8 @@ colors = {
     'L': colorama.Fore.GREEN,
     'S': colorama.Fore.BLUE,
     'C': colorama.Fore.YELLOW,
+    'A': colorama.Fore.CYAN,
+    'B': colorama.Fore.MAGENTA,
 }
 
 render_colors(output, colors)
