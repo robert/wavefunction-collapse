@@ -6,7 +6,7 @@ very clearly". To install dependencies:
 
 ```
 virtualenv vendor
-source vendor/bin/active
+source vendor/bin/activate
 pip install -r requirements.txt
 ```
 
