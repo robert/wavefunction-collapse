@@ -355,7 +355,6 @@ def parse_example_grid(grid):
                     weights[cur_tile] = 0
                 weights[cur_tile] += 1
 
-                print('sizes', grid_width, grid_height, grid_depth)
                 for d in valid_dirs((x, y, z), (grid_width, grid_height, grid_depth)):
                     other_tile = grid[z+d[2]][x+d[0]][y+d[1]]
                     compatibilities.add((cur_tile, other_tile, d))
