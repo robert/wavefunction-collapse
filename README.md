@@ -1,8 +1,6 @@
 # Wavefunction Collapse
 
-This is the example code for my blog post,
-"The Wavefunction Collapse Algorithm explained
-very clearly". To install dependencies:
+This is the example code for my blog post, ["The Wavefunction Collapse Algorithm explained very clearly"](https://robertheaton.com/2018/12/17/wavefunction-collapse-algorithm/). To install dependencies:
 
 ```
 virtualenv vendor
