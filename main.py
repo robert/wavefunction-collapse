@@ -143,13 +143,13 @@ class Wavefunction(object):
         """
         x, y = co_ords
         opts = self.coefficients[x][y]
-        valid_weights = {tile: weight for tile, weight in self.weights.iteritems() if tile in opts}
+        valid_weights = {tile: weight for tile, weight in self.weights.items() if tile in opts}
 
         total_weights = sum(valid_weights.values())
         rnd = random.random() * total_weights
 
         chosen = None
-        for tile, weight in valid_weights.iteritems():
+        for tile, weight in valid_weights.items():
             rnd -= weight
             if rnd < 0:
                 chosen = tile
@@ -272,7 +272,7 @@ def render_colors(matrix, colors):
             color = colors[val]
             output_row.append(color + val + colorama.Style.RESET_ALL)
 
-        print "".join(output_row)
+        print("".join(output_row))
 
 
 def valid_dirs(cur_co_ord, matrix_size):
