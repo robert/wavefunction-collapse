@@ -2,10 +2,10 @@ import random
 import math
 import colorama
 
-UP = (0, 1)
-LEFT = (-1, 0)
-DOWN = (0, -1)
-RIGHT = (1, 0)
+UP = (1, 0)
+DOWN = (-1, 0)
+LEFT = (0, -1)
+RIGHT = (0, 1)
 DIRS = [UP, DOWN, LEFT, RIGHT]
 
 
@@ -62,9 +62,9 @@ class Wavefunction(object):
         """
         coefficients = []
 
-        for x in range(size[0]):
+        for _ in range(size[1]):
             row = []
-            for y in range(size[1]):
+            for _ in range(size[0]):
                 row.append(set(tiles))
             coefficients.append(row)
 
@@ -75,9 +75,16 @@ class Wavefunction(object):
         self.weights = weights
 
     def get(self, co_ords):
-        """Returns the set of possible tiles at `co_ords`"""
-        x, y = co_ords
-        return self.coefficients[x][y]
+        """Fetches the set of possible tiles at `co_ords`.
+
+        Arguments:
+        co_ords -- Tuple representing 2D coordinates in the format (y, x).
+
+        Returns:
+        The set of possible tiles.
+        """
+        y, x = co_ords
+        return self.coefficients[y][x]
 
     def get_collapsed(self, co_ords):
         """Returns the only remaining possible tile at `co_ords`.
@@ -94,14 +101,14 @@ class Wavefunction(object):
         does not have exactly 1 remaining possible tile then
         this method raises an exception.
         """
-        width = len(self.coefficients)
-        height = len(self.coefficients[0])
+        height = len(self.coefficients)
+        width = len(self.coefficients[0])
 
         collapsed = []
-        for x in range(width):
+        for y in range(height):
             row = []
-            for y in range(height):
-                row.append(self.get_collapsed((x,y)))
+            for x in range(width):
+                row.append(self.get_collapsed((y, x)))
             collapsed.append(row)
 
         return collapsed
@@ -110,11 +117,11 @@ class Wavefunction(object):
         """Calculates the Shannon Entropy of the wavefunction at
         `co_ords`.
         """
-        x, y = co_ords
+        y, x = co_ords
 
         sum_of_weights = 0
         sum_of_weight_log_weights = 0
-        for opt in self.coefficients[x][y]:
+        for opt in self.coefficients[y][x]:
             weight = self.weights[opt]
             sum_of_weights += weight
             sum_of_weight_log_weights += weight * math.log(weight)
@@ -126,8 +133,8 @@ class Wavefunction(object):
         """Returns true if every element in Wavefunction is fully
         collapsed, and false otherwise.
         """
-        for x, row in enumerate(self.coefficients):
-            for y, sq in enumerate(row):
+        for row in self.coefficients:
+            for sq in row:
                 if len(sq) > 1:
                     return False
 
@@ -141,8 +148,8 @@ class Wavefunction(object):
 
         This method mutates the Wavefunction, and does not return anything.
         """
-        x, y = co_ords
-        opts = self.coefficients[x][y]
+        y, x = co_ords
+        opts = self.coefficients[y][x]
         valid_weights = {tile: weight for tile, weight in self.weights.items() if tile in opts}
 
         total_weights = sum(valid_weights.values())
@@ -155,7 +162,7 @@ class Wavefunction(object):
                 chosen = tile
                 break
 
-        self.coefficients[x][y] = set(chosen)
+        self.coefficients[y][x] = set(chosen)
 
     def constrain(self, co_ords, forbidden_tile):
         """Removes `forbidden_tile` from the list of possible tiles
@@ -163,8 +170,8 @@ class Wavefunction(object):
 
         This method mutates the Wavefunction, and does not return anything.
         """
-        x, y = co_ords
-        self.coefficients[x][y].remove(forbidden_tile)
+        y, x = co_ords
+        self.coefficients[y][x].remove(forbidden_tile)
 
 
 class Model(object):
@@ -201,7 +208,7 @@ class Model(object):
 
     def propagate(self, co_ords):
         """Propagates the consequences of the wavefunction at `co_ords`
-        collapsing. If the wavefunction at (x,y) collapses to a fixed tile,
+        collapsing. If the wavefunction at (y, x) collapses to a fixed tile,
         then some tiles may not longer be theoretically possible at
         surrounding locations.
 
@@ -244,17 +251,17 @@ class Model(object):
         min_entropy_coords = None
 
         width, height = self.output_size
-        for x in range(width):
-            for y in range(height):
-                if len(self.wavefunction.get((x,y))) == 1:
+        for y in range(height):
+            for x in range(width):
+                if len(self.wavefunction.get((y, x))) == 1:
                     continue
 
-                entropy = self.wavefunction.shannon_entropy((x, y))
+                entropy = self.wavefunction.shannon_entropy((y, x))
                 # Add some noise to mix things up a little
                 entropy_plus_noise = entropy - (random.random() / 1000)
                 if min_entropy is None or entropy_plus_noise < min_entropy:
                     min_entropy = entropy_plus_noise
-                    min_entropy_coords = (x, y)
+                    min_entropy_coords = (y, x)
 
         return min_entropy_coords
 
@@ -280,14 +287,14 @@ def valid_dirs(cur_co_ord, matrix_size):
     of `matrix_size`. Ensures that we don't try to take step to the
     left when we are already on the left edge of the matrix.
     """
-    x, y = cur_co_ord
+    y, x = cur_co_ord
     width, height = matrix_size
     dirs = []
 
+    if y < height-1: dirs.append(UP)
+    if y > 0: dirs.append(DOWN)
     if x > 0: dirs.append(LEFT)
     if x < width-1: dirs.append(RIGHT)
-    if y > 0: dirs.append(DOWN)
-    if y < height-1: dirs.append(UP)
 
     return dirs
 
@@ -309,19 +316,19 @@ def parse_example_matrix(matrix):
     * A dict of weights of the form tile -> weight
     """
     compatibilities = set()
-    matrix_width = len(matrix)
-    matrix_height = len(matrix[0])
+    matrix_height = len(matrix)
+    matrix_width = len(matrix[0])
 
     weights = {}
 
-    for x, row in enumerate(matrix):
-        for y, cur_tile in enumerate(row):
+    for y, row in enumerate(matrix):
+        for x, cur_tile in enumerate(row):
             if cur_tile not in weights:
                 weights[cur_tile] = 0
             weights[cur_tile] += 1
 
-            for d in valid_dirs((x,y), (matrix_width, matrix_height)):
-                other_tile = matrix[x+d[0]][y+d[1]]
+            for d in valid_dirs((y, x), (matrix_width, matrix_height)):
+                other_tile = matrix[y+d[0]][x+d[1]]
                 compatibilities.add((cur_tile, other_tile, d))
 
     return compatibilities, weights
@@ -348,7 +355,7 @@ input_matrix2 = [
 
 compatibilities, weights = parse_example_matrix(input_matrix)
 compatibility_oracle = CompatibilityOracle(compatibilities)
-model = Model((10, 50), weights, compatibility_oracle)
+model = Model((50, 10), weights, compatibility_oracle)
 output = model.run()
 
 colors = {
